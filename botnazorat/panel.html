@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="uz"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Bot Nazorat</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--ink:#1B1240;--mute:#8A82A8;--line:#EEE9F7;--pur:#7C3AED;--pink:#FF4D6D;--grn:#16C784;--sky:#2AABEE;--yel:#FFC93C;--bg:#FFF8F0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;padding:14px 14px 40px}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(500px 400px at 0% 0%,#E9DDFF 0,transparent 70%),radial-gradient(500px 400px at 100% 10%,#FFE9B8 0,transparent 70%),radial-gradient(600px 500px at 50% 100%,#DCF1FF 0,transparent 70%)}
+.top{display:flex;align-items:center;gap:12px;margin:4px 2px 14px}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#A78BFA,#6D28D9);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 8px 20px rgba(124,58,237,.3)}
+.top h1{font-size:20px;font-weight:800;letter-spacing:-.3px}.top p{font-size:13px;color:var(--mute);font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:20px;background:#fff;font-size:14px;font-weight:700;color:var(--mute);box-shadow:0 4px 12px rgba(27,18,64,.06)}
+.chip.on{background:var(--ink);color:#fff}
+.mode{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:12px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border-radius:20px;padding:14px 14px 12px;box-shadow:0 8px 24px rgba(27,18,64,.06);position:relative;overflow:hidden}
+.kpi .l{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:30px;font-weight:900;letter-spacing:-1px;margin-top:4px}
+.kpi .s{font-size:12px;font-weight:700;color:var(--mute);margin-top:2px}
+.kpi .e{position:absolute;right:10px;top:10px;font-size:22px;opacity:.9}
+.kpi.big{grid-column:span 2;background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff}
+.kpi.big .l,.kpi.big .s{color:rgba(255,255,255,.75)}
+.bar3{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:10px;background:rgba(255,255,255,.25)}
+.card{background:#fff;border-radius:22px;padding:16px;box-shadow:0 8px 24px rgba(27,18,64,.06);margin-bottom:12px}
+.card h2{font-size:16px;font-weight:800;margin-bottom:4px}
+.leg{display:flex;gap:12px;font-size:12px;font-weight:700;color:var(--mute);margin:6px 0 8px}.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tabs{display:flex;background:#F4F0FB;border-radius:14px;padding:4px;margin-bottom:10px}
+.tab{flex:1;text-align:center;padding:9px 0;border-radius:11px;font-size:13px;font-weight:800;color:var(--mute)}
+.tab.on{background:#fff;color:var(--ink);box-shadow:0 3px 10px rgba(27,18,64,.08)}
+.search{width:100%;border:0;background:#F7F4FC;border-radius:12px;padding:11px 14px;font-size:15px;margin-bottom:6px;outline:none;color:var(--ink)}
+.row{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
+.row .n{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .u{font-size:12px;color:var(--mute);font-weight:600}
+.row .r{margin-left:auto;text-align:right;font-size:12px;font-weight:700;color:var(--mute);flex:none}
+.pill{display:inline-block;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:800}
+.src{margin:10px 0}.src .t{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:5px}
+.src .b{height:10px;border-radius:5px;background:#F1ECFA;overflow:hidden}.src .b i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#8B5CF6,#FF4D6D)}
+.empty{text-align:center;color:var(--mute);font-weight:600;padding:22px 0;font-size:14px}
+#load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--bg);font-weight:700;color:var(--mute);z-index:9}
+.sp{width:38px;height:38px;border-radius:50%;border:4px solid #E9DDFF;border-top-color:var(--pur);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}
+.up{color:var(--grn)}.dn{color:var(--pink)}
+</style></head><body>
+<div id="load"><div class="sp"></div><div id="lt">Yuklanmoqda…</div></div>
+<div class="top"><div class="logo">📊</div><div><h1 id="title">Bot Nazorat</h1><p id="sub">—</p></div></div>
+<div class="chips" id="chips"></div>
+<div id="mode"></div>
+<div class="grid" id="kpis"></div>
+<div class="card"><h2>📈 Oxirgi 30 kun</h2>
+  <div class="leg"><span><i style="background:var(--pur)"></i>Kirdi</span><span><i style="background:var(--pink)"></i>Blokladi</span><span><i style="background:var(--grn)"></i>Faol</span></div>
+  <svg id="chart" width="100%" height="190"></svg></div>
+<div class="card">
+  <div class="tabs" id="tabs"><div class="tab on" data-t="new">🆕 Kirganlar</div><div class="tab" data-t="blocked">⛔ Blok</div><div class="tab" data-t="active">🔥 Faol</div><div class="tab" data-t="src">📣 Manba</div></div>
+  <input class="search" id="q" placeholder="🔍 Ism yoki username bo‘yicha qidirish">
+  <div id="list"></div>
+</div>
+<script>
+const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#FFF8F0');tg.setBackgroundColor('#FFF8F0')}catch(e){}}
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D=null,TAB='new',BOT=new URLSearchParams(location.search).get('bot');
+const COL=['#8B5CF6','#FF4D6D','#2AABEE','#16C784','#FF8A00','#EC4899','#14B8A6'];
+const fmt=ts=>{if(!ts)return'—';const d=new Date(ts*1000),n=new Date();const hm=d.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'});
+  if(d.toDateString()===n.toDateString())return'bugun '+hm;const y=new Date(n-864e5);if(d.toDateString()===y.toDateString())return'kecha '+hm;
+  return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+' '+hm;};
+async function load(){
+  $('load').style.display='flex';
+  try{const r=await fetch('api/panel'+(BOT?'?bot='+BOT:''),{headers:{'X-Init-Data':tg?tg.initData:''}});
+    if(r.status===401){$('lt').textContent='⛔ Panelni bot ichidan oching';return;}
+    D=await r.json();}catch(e){$('lt').textContent='⚠️ Ulanishda xato';return;}
+  if(!D.bots||!D.bots.length){$('lt').innerHTML='🤖 Hali bot ulanmagan.<br>Botda “➕ Bot ulash” ni bosing.';return;}
+  BOT=String(D.bot.id);draw();$('load').style.display='none';}
+function kpi(l,v,s,e,cls=''){return`<div class="kpi ${cls}"><div class="e">${e}</div><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`}
+function draw(){
+  const n=D.n,b=D.bot;$('title').textContent=b.name||'Bot';$('sub').textContent='@'+b.username;
+  $('chips').innerHTML=D.bots.map(x=>`<div class="chip ${String(x.id)===BOT?'on':''}" data-id="${x.id}">@${esc(x.username)}</div>`).join('');
+  $('chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{BOT=c.dataset.id;tg&&tg.HapticFeedback&&tg.HapticFeedback.selectionChanged();load();});
+  $('mode').innerHTML=b.mode==='proxy'?'<span class="mode" style="background:#DFF7EC;color:#0F9A66">● Real vaqt kuzatuvi</span>':'<span class="mode" style="background:#FFF1D0;color:#B7791F">● Tekshiruv rejimi</span>';
+  const d=n.new_today-n.new_yday,al=n.total?n.alive/n.total*100:0;
+  $('kpis').innerHTML=`<div class="kpi big"><div class="e">👥</div><div class="l">Jami foydalanuvchi</div><div class="v">${n.total.toLocaleString('ru')}</div>
+     <div class="s">✅ tirik ${n.alive} · ⛔ blok ${n.blocked} (${n.block_rate}%)</div><div class="bar3"><i style="width:${al}%;background:#fff"></i></div></div>`+
+    kpi('Bugun kirdi',n.new_today,`<span class="${d>=0?'up':'dn'}">${d>=0?'▲':'▼'} ${Math.abs(d)}</span> kechaga nisbatan`,'🆕')+
+    kpi('Bugun faol',n.dau,`7 kun: ${n.wau} · 30 kun: ${n.mau}`,'🔥')+
+    kpi('Bugun chiqdi',n.blk_today,`7 kun: ${n.blk_7} · qaytgan: ${n.unblk_7}`,'🚪')+
+    kpi('7 kunda kirdi',n.new_7,`30 kun: ${n.new_30}`,'📈');
+  chart();list();}
+function chart(){const s=D.series,svg=$('chart'),W=svg.clientWidth||340,H=190,P=22,bw=(W-P)/s.length;
+  const mx=Math.max(1,...s.map(p=>Math.max(p.new,p.block,p.active)));const y=v=>H-24-(v/mx)*(H-40);let h='';
+  for(let i=0;i<=3;i++){const yy=16+i*(H-40)/3;h+=`<line x1="${P}" x2="${W}" y1="${yy}" y2="${yy}" stroke="#F1ECFA"/><text x="0" y="${yy+4}" font-size="10" fill="#B3ABCB">${Math.round(mx*(1-i/3))}</text>`;}
+  s.forEach((p,i)=>{const x=P+i*bw;h+=`<rect x="${x+bw*.12}" y="${y(p.new)}" width="${bw*.36}" height="${H-24-y(p.new)}" rx="2" fill="#8B5CF6"/><rect x="${x+bw*.52}" y="${y(p.block)}" width="${bw*.36}" height="${H-24-y(p.block)}" rx="2" fill="#FF4D6D"/>`;
+    if(i%5===0)h+=`<text x="${x+bw/2}" y="${H-6}" font-size="10" fill="#B3ABCB" text-anchor="middle">${p.label}</text>`;});
+  h+=`<polyline fill="none" stroke="#16C784" stroke-width="2.5" stroke-linejoin="round" points="${s.map((p,i)=>`${P+i*bw+bw/2},${y(p.active)}`).join(' ')}"/>`;svg.innerHTML=h;}
+function list(){const q=$('q').value.trim().toLowerCase();$('q').style.display=TAB==='src'?'none':'block';
+  if(TAB==='src'){const t=D.sources.reduce((a,b)=>a+b.n,0);$('list').innerHTML=D.sources.length?D.sources.map(s=>`<div class="src"><div class="t"><span>${s.param?'📣 '+esc(s.param):'🔗 To‘g‘ridan-to‘g‘ri'}</span><span>${s.n} · ${Math.round(100*s.n/t)}%</span></div><div class="b"><i style="width:${100*s.n/t}%"></i></div></div>`).join('')+
+    `<div class="empty" style="padding:10px 0;font-size:12px">Reklamada t.me/${esc(D.bot.username)}?start=insta1 kabi havola bering</div>`:'<div class="empty">30 kunda yangi foydalanuvchi yo‘q</div>';return;}
+  let a=D[TAB].filter(u=>!q||(u.name+' '+(u.username||'')).toLowerCase().includes(q));
+  if(!a.length){$('list').innerHTML=`<div class="empty">${q?'Topilmadi':TAB==='blocked'?'Hech kim bloklamagan 🎉':'Hozircha bo‘sh'}</div>`;return;}
+  $('list').innerHTML=a.map(u=>{const c=COL[Math.abs(u.id)%COL.length],ini=esc((u.name||'?').trim()[0]||'?').toUpperCase();
+    const r=TAB==='blocked'?`<span class="pill" style="background:#FFE4EA;color:#E11D48">⛔ ${fmt(u.blocked_at)}</span>`:TAB==='active'?`⚡ ${u.actions}<br>${fmt(u.last_seen)}`:
+      `${fmt(u.first_seen)}${u.status==='blocked'?'<br><span class="pill" style="background:#FFE4EA;color:#E11D48">blok</span>':''}${u.param?'<br><span class="pill" style="background:#EFE7FF;color:#7C3AED">'+esc(u.param)+'</span>':''}`;
+    return`<div class="row" data-u="${esc(u.username||'')}" data-id="${u.id}"><div class="av" style="background:${c}">${ini}</div><div style="min-width:0"><div class="n">${esc(u.name)}</div><div class="u">${u.username?'@'+esc(u.username):'ID '+u.id}</div></div><div class="r">${r}</div></div>`}).join('');
+  $('list').querySelectorAll('.row').forEach(r=>r.onclick=()=>{if(r.dataset.u&&tg)tg.openTelegramLink('https://t.me/'+r.dataset.u);});}
+$('tabs').querySelectorAll('.tab').forEach(t=>t.onclick=()=>{$('tabs').querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));TAB=t.dataset.t;tg&&tg.HapticFeedback&&tg.HapticFeedback.selectionChanged();list();});
+$('q').oninput=list;window.addEventListener('resize',()=>D&&chart());
+load();
+</script></body></html>
